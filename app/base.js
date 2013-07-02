@@ -96,6 +96,87 @@ function quaternion(xyz, angle) {
 
 };
 
+var keysModel = function() {
+    var pressComplete = function(code) {
+        keysBuffer[code].isEven = (++keysBuffer[code].pressedCount % 2 == 0);
+    };
+    var keysBuffer = {};
+    var checkKeyObjectExistence = function(code) {
+        if(!keysBuffer[code]) {
+            keysBuffer[code] = {
+                pressedCount: 0,
+                isEven: true,
+                isPressed: false
+            }
+        }
+    };
+    var onKeys = {};
+    this.down = function(e) {
+        checkKeyObjectExistence(e.keyCode);
+        keysBuffer[e.keyCode].isPressed = true;
+    };
+    this.up = function(e) {
+        checkKeyObjectExistence(e.keyCode);
+        pressComplete(e.keyCode);
+        keysBuffer[e.keyCode].isPressed = false;
+        if(onKeys[e.keyCode]) {
+            onKeys[e.keyCode](e);
+        }
+    };
+    this.info = function(key, onlyIsPressed) {
+        var obj;
+        switch(key) {
+            case 'up':      obj = keysBuffer[38]; break;
+            case 'down':    obj = keysBuffer[40]; break;
+            case 'left':    obj = keysBuffer[37]; break;
+            case 'right':   obj = keysBuffer[39]; break;
+            case 'esc':     obj = keysBuffer[27]; break;
+            case 'shift':   obj = keysBuffer[16]; break;
+            case 'ctrl':    obj = keysBuffer[17]; break;
+            default:        obj = (typeof key == 'string')? keysBuffer[key.charCodeAt()]: keysBuffer[key.charCodeAt()] || false;
+        }
+        return (obj && onlyIsPressed)? obj.isPressed: obj;
+    };
+    this.on = function(key, f) {
+        onKeys[key] = f;
+    }
+}, keys = new keysModel();
+
+document.addEventListener('keydown', keys.down, true);
+document.addEventListener('keyup', keys.up, true);
+
+var info = function() {
+
+    //document.getElementById('info').innerHTML = '';
+    
+    var html = '';
+
+    for(var i = 0; i < arguments.length; i++) {
+
+        if(typeof arguments[i][0] == 'string') {
+
+            html += '<div class="info">' + arguments[i][0] + '<br />';
+
+        } else {
+
+            html += '<div class="info ' + arguments[i][0][1] + '">' + arguments[i][0][0] + '<br />';
+
+        };
+
+        for(var j = 1; j < arguments[i].length; j++) {
+
+            html += arguments[i][j][0] + ': ' + arguments[i][j][1] + '<br/>';
+
+        }
+
+        html += '</div>';
+
+    };
+
+    document.getElementById('info').innerHTML = html;
+
+};
+
 define([
         'three',
         'meta',

@@ -6,14 +6,25 @@ requirejs.config({
         bootstrap: 'libs/bootstrap/js/bootstrap.min',
         jqueryui: '//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min',
 
-        three: '../t/build/three',
-        fontForThree: 'helvetiker_bold.typeface',
-        stats: '../t/examples/js/libs/stats.min',
+        //three: '../t/build/three',
+        three: 'libs/three.min',
+        stats: 'libs/stats.min',
 
-        base: 'base2',
-        meta: 'meta',
-        menu: 'menu',
-        game: 'game2'
+        font: 'libs/require/text!data/fonts/helvetiker_bold.typeface',
+        //carMesh: 'libs/require/text!data/models/DodgeChallenger1970',
+
+        base: 'app/base',
+        meta: 'app/meta',
+        menu: 'app/menu',
+        game: 'app/game',
+
+        engine: 'app/carPhysics/engine',
+        transmission: 'app/carPhysics/transmission',
+        chassis: 'app/carPhysics/chassis',
+        steering: 'app/carPhysics/steering',
+        navi: 'app/carPhysics/navi',
+        view: 'app/carPhysics/view',
+        suspesionKinematics: 'app/carPhysics/suspesionKinematics'
     },
     shim: {
         backbone: {
