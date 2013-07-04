@@ -3,7 +3,7 @@ define([],
 
         var view = {
 
-            distance: 7,
+            distance: 15,
             angle: Math.PI,
             localAngle: 0,
             userTurnAroundAngle: 0,

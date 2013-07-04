@@ -9,6 +9,34 @@ define([
             //menu || game
             var state = 'game';
 
+            document.addEventListener('mousemove', function(e) {
+
+                if(state == 'menu') {
+
+                    menu.mouse('move', e);
+
+                } else {
+
+                    game.mouse('move', e);
+
+                };
+
+            });
+
+            document.addEventListener('click', function(e) {
+
+                if(state == 'menu') {
+
+                    menu.mouse('click', e);
+
+                } else {
+
+                    game.mouse('click', e);
+
+                };
+
+            });
+
             this.process = function() {
 
                 if(state == 'menu') {
@@ -21,7 +49,19 @@ define([
 
             this.changeState = function() {
 
-                state = (state == 'menu')? 'game': 'menu';
+                if(state == 'menu') {
+
+                    state = 'game';
+
+                } else {
+
+                    state = 'menu';
+
+                    camera.position.set(0, 0, 10);
+                    camera.lookAt( new THREE.Vector3() );
+
+                };
+
                 return state;
 
             };

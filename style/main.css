@@ -14,7 +14,7 @@ canvas {
 }
 
 .info {
-    float: left; 
+    /* float: left; */
     margin: 10px; 
     width: 200px;
 }

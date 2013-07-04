@@ -54,6 +54,20 @@ define([
 
                 transmission.process(engine.torq, engine.rpm);
 
+                if(transmission.engineBrake > 0) {
+
+                    engine.rpm -= transmission.engineBrake;
+                    
+                    if(engine.rpm < engine.minRpm) {
+
+                        engine.rpm = engine.minRpm;
+
+                    };
+
+                    transmission.engineBrake = 0;
+
+                }
+
                 chassis.process(transmission.rpm, navi.brakes, car.bones.wheels, carConsts.wheelRatio, navi.throttle, transmission.currentGear, transmission.gears[transmission.currentGear]);
 
                 steering.setMaxTurnAngle(chassis.speed);
@@ -77,10 +91,14 @@ define([
             this.calculateForceVectors = function() {
 
                 if(chassis.speed > 1) {
-                    this.inertionYAngle += (this.rotation.yAngle - this.inertionYAngle) / 20 * 30 / chassis.speed;    
+
+                    this.inertionYAngle += (this.rotation.yAngle - this.inertionYAngle) / 20 * 30 / chassis.speed;
+
                 } else {
+
                     this.inertionYAngle = this.rotation.yAngle || 0;
-                }
+
+                };
 
                 this.C.x = Math.sin(this.inertionYAngle);
                 this.C.z = Math.cos(this.inertionYAngle);
@@ -114,6 +132,12 @@ define([
 
                 scene.remove(this.C.line);
                 this.C.line = vec(this.position, this.position.clone().add(this.C.clone().multiplyScalar(10)), 0xff0000);
+
+            };
+
+            this.mouse = function() {
+
+                //
 
             };
 
@@ -171,36 +195,50 @@ define([
 
         var game = new (function() {
 
-            var inited = false;
+            var init = function() {
 
-            var loader = new THREE.JSONLoader(true);
+                console.log('init')
 
-            loader.load(
-                'data/models/DodgeChallenger1970.js',
-                function(geometry, materials) {
+                init.inProgress = true;
 
-                    for(var i = 0; i < materials.length; i++) {
+                var loader = new THREE.JSONLoader(true);
 
-                        materials[i].skinning = true;
+                loader.load(
+                    'data/models/DodgeChallenger1970.js',
+                    function(geometry, materials) {
 
-                    };
+                        for(var i = 0; i < materials.length; i++) {
 
-                    var material = new THREE.MeshFaceMaterial(materials);
+                            materials[i].skinning = true;
 
-                    mesh = new THREE.SkinnedMesh(geometry, material);
+                        };
 
-                    scene.add(mesh);
+                        var material = new THREE.MeshFaceMaterial(materials);
 
-                    car = new carModel(mesh.bones, mesh);
+                        mesh = new THREE.SkinnedMesh(geometry, material);
 
-                    inited = true;
+                        scene.add(mesh);
 
-                }
-            );
+                        car = new carModel(mesh.bones, mesh);
+
+                        init = null;
+
+                    }
+                );
+
+            };
 
             this.process = function() {
 
-                if(inited) {
+                if(init) {
+
+                    if(!init.inProgress) {
+
+                        init();
+
+                    };
+
+                } else {
 
                     car.process();
 

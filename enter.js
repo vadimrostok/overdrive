@@ -10,7 +10,7 @@ requirejs.config({
         three: 'libs/three.min',
         stats: 'libs/stats.min',
 
-        font: 'libs/require/text!data/fonts/helvetiker_bold.typeface',
+        font: 'data/fonts/helvetiker_bold.typeface',
         //carMesh: 'libs/require/text!data/models/DodgeChallenger1970',
 
         base: 'app/base',

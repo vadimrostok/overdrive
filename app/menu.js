@@ -1,55 +1,107 @@
-/*var textMeshes, geometry = [], i = 0;
-var w = 10;//1700, h = 800;
-var h = 5;//
+                
 
-var setText = (function(fontStyle) {
-    var textHeight = 50;
-    return function(xyz, rot_xyz, text) {
-
-        geometry[i] = new THREE.TextGeometry( text, {
-        size: 0.5,
-        height: textHeight,
-        font: 'helvetiker',
-        weight: 'bold',
-        style: 'normal',
-    });
-        THREE.GeometryUtils.center( geometry[i] );
-        textMesh = new THREE.Mesh( geometry[i], new THREE.MeshLambertMaterial({
-            color: 0x0055ff,
-            combine: THREE.MixOperation,
-            reflectivity: 0.3
-        }));
-
-        textMesh.rotation.set(rot_xyz[0], rot_xyz[1], rot_xyz[2]);
-        textMesh.position.set( xyz[0], xyz[1], textHeight + xyz[2]);
-
-        i++;
-
-        return textMesh;
-
-    }
-
-})(
-    1
-);
-
-textMeshes = [
-    setText([0, h, 0], [0, Math.PI, 0], 'Accelerate'),
-    setText([0, 0, 0], [0, Math.PI, 0], 'Brake'),
-    setText([w * 0.7, h * 0.5, 0], [0, Math.PI, 0], 'Left'),
-    setText([-w * 0.7, h * 0.5, 0], [0, Math.PI, 0], 'Right'),
-    setText([0, h * 0.5, 0], [0, Math.PI, 0], 'Click to start the game')
-];*/
 define([
-        'three'
+        'three',
+        'font'
     ], 
     function(THREE) {
 
         var menu = new (function() {
 
+            var inited = false;
+
+            var textMeshes = [], geometry = [], i = 0;
+
+            var setText = function() {
+
+                var geometry = new THREE.Geometry(), newGeometry, mesh;
+                var textHeight = 0.1;
+                var params = {
+                    size: 0.5,
+                    height: textHeight,
+                    font: 'helvetiker',
+                    weight: 'bold',
+                    style: 'normal',
+                };
+
+                for(var i = 0, l = arguments.length; i < l; i++) {
+
+                    var xyz = arguments[i][0];
+                    var rot_xyz = arguments[i][1];
+                    var text = arguments[i][2];
+
+                    newGeometry = new THREE.TextGeometry(text, params);
+
+                    THREE.GeometryUtils.center(newGeometry);
+
+                    mesh = new THREE.Mesh(newGeometry);
+
+                    mesh.rotation.set(rot_xyz[0], rot_xyz[1], rot_xyz[2]);
+                    mesh.position.set(xyz[0], xyz[1], textHeight / 2 + xyz[2]);
+
+                    THREE.GeometryUtils.merge(geometry, mesh);
+
+                };
+
+                mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+                    color: 0x0099ff,
+                    combine: THREE.MixOperation,
+                    reflectivity: 0.7
+                }));
+
+                return mesh;
+
+            };
+
+            var turn = [0, 0, 0];
+
+            var height = 3.5;
+            var width = height * window.innerWidth / window.innerHeight;
+
+            var menuMesh = setText(
+                [[0, 0.8 * height, 0],  turn, 'Accelerate'],
+                [[0, -0.8 * height, 0], turn, 'Brake'],
+                [[-0.8 * width, 0, 0],  turn, 'Left'],
+                [[0.8 * width, 0, 0],   turn, 'Right'],
+                [[0, 0.3, 0],           turn, 'Click to start'],
+                [[0, -0.3, 0],          turn, 'the game']
+            );
+
+            this.init = function() {
+
+                scene.add(menuMesh);
+
+                inited = true;
+
+            };
+
             this.process = function() {
 
-                //
+                if(!inited) {
+
+                    this.init();
+
+                }
+
+            };
+
+            this.mouse = function(type, e) {
+
+                if(type == 'move') {
+
+                    this.swing(e.clientX, e.clientY);
+
+                };
+
+            };
+
+            this.swing = function(x, y) {
+
+                //menuMesh
+                menuMesh.rotation.y = (x / window.innerWidth - 0.5) * Math.PI / 180 * 40;
+
+                menuMesh.rotation.x = (y / window.innerHeight - 0.5) * Math.PI / 180 * 40;
+
 
             };
 
