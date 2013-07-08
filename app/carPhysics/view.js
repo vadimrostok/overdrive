@@ -27,6 +27,8 @@ define([],
 
                 camera.lookAt(carPosition.clone().setY(carPosition.y + 2.5));
 
+                return resultAngle;
+
             },
 
             info: function() {

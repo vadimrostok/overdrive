@@ -67,9 +67,13 @@ define([
                 [[0, -0.3, 0],          turn, 'the game']
             );
 
+            this.mesh;
+
             this.init = function() {
 
                 scene.add(menuMesh);
+
+                this.mesh = menuMesh;
 
                 inited = true;
 
@@ -85,11 +89,15 @@ define([
 
             };
 
-            this.mouse = function(type, e) {
+            this.mouse = function(meta, type, e) {
 
                 if(type == 'move') {
 
                     this.swing(e.clientX, e.clientY);
+
+                } else if(type == 'click') {
+
+                    meta.changeState();
 
                 };
 

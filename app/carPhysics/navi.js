@@ -12,25 +12,7 @@ define([],
 
             process: function() {
 
-                if(keys.info('up', true)) {
-
-                    this.throttle = 0.8;
-                    this.clutch = 0.8;
-                    this.brakes = 0.0;
-
-                } else if(keys.info('down', true)) {
-
-                    this.throttle = 0.2;
-                    this.clutch = 0.0;
-                    this.brakes = 1.0;
-
-                } else {
-
-                    this.throttle = 0.1;
-                    this.clutch = 0.8;
-                    this.brakes = 0.0;
-
-                };
+                this.clutch = 0.8;
 
                 //!!!
                 if(keys.info('L', true)) {

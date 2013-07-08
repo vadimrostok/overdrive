@@ -6,6 +6,8 @@ define([
 
         var meta = new (function() {
 
+            var meta = this;
+
             //menu || game
             var state = 'game';
 
@@ -13,11 +15,11 @@ define([
 
                 if(state == 'menu') {
 
-                    menu.mouse('move', e);
+                    menu.mouse(meta, 'move', e);
 
                 } else {
 
-                    game.mouse('move', e);
+                    game.mouse(meta, 'move', e);
 
                 };
 
@@ -27,11 +29,39 @@ define([
 
                 if(state == 'menu') {
 
-                    menu.mouse('click', e);
+                    menu.mouse(meta, 'click', e);
 
                 } else {
 
-                    game.mouse('click', e);
+                    game.mouse(meta, 'click', e);
+
+                };
+
+            });
+
+            document.addEventListener('mousewheel', function(e) {
+
+                var direction;
+
+                if (event.wheelDelta) {
+
+                    direction = (window.opera)? event.wheelDelta / 120: -event.wheelDelta / 120;
+                    
+                } else if (event.detail) {
+                    
+                    direction = -event.detail / 3;
+
+                };
+
+                direction *= -1;
+
+                if(state == 'menu') {
+
+                    menu.mouse(meta, 'wheel', direction);
+
+                } else {
+
+                    game.mouse(meta, 'wheel', direction);
 
                 };
 
@@ -53,9 +83,33 @@ define([
 
                     state = 'game';
 
+                    if(menu.mesh) {
+
+                        menu.mesh.visible = false;
+
+                    };
+
+                    if(game.carMesh) {
+
+                        game.carMesh.visible = true;
+
+                    };
+
                 } else {
 
                     state = 'menu';
+
+                    if(menu.mesh) {
+
+                        menu.mesh.visible = true;
+
+                    };
+
+                    if(game.carMesh) {
+
+                        game.carMesh.visible = false;
+
+                    };
 
                     camera.position.set(0, 0, 10);
                     camera.lookAt( new THREE.Vector3() );
