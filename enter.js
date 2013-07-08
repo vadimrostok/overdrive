@@ -6,12 +6,11 @@ requirejs.config({
         bootstrap: 'libs/bootstrap/js/bootstrap.min',
         jqueryui: '//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min',
 
-        //three: '../t/build/three',
-        three: 'libs/three.min',
+        three: '../t/build/three',
+        //three: 'libs/three.min',
         stats: 'libs/stats.min',
 
-        font: 'libs/require/text!data/fonts/helvetiker_bold.typeface',
-        //carMesh: 'libs/require/text!data/models/DodgeChallenger1970',
+        font: 'data/fonts/helvetiker_bold.typeface',
 
         base: 'app/base',
         meta: 'app/meta',

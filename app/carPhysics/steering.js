@@ -3,15 +3,13 @@ define([],
 
         var steering = {
 
+            steeringAngle: 0,
             turnAngle: 0,
             turnRatio: 0,
             //Скорость поворота руля (градусов в секунду).
-            degsPerSec: 50,
+            degsPerSec: 100,
             //Скорость возвращения руля.
             backDegsPerSec: 60,
-            //Максимальный угол поворота колес. На больших скоростях 
-            //немного уменьшается, типа электронная защита.
-            maxTurnAngle: 30,
 
             turn: function(carsTurners, carsRotation, longForceDirection, turnDirection, interaxalDistance, speed, suspesionKinematicsZRotation, mesh) {
 
@@ -38,83 +36,39 @@ define([],
 
             },
 
-            //Колеса вернуться в "состояние покоя", "смотреть" вперед.
-            alignTurn: function() {
+            smoothTurn: function(speed) {
 
-                if(this.turnAngle != 0) {
+                if(Math.abs(this.steeringAngle) > 10 && Math.abs(this.steeringAngle) > -speed + 30) {
 
-                    if(Math.abs(this.turnAngle) < 2) {
+                        if(-speed + 30 < 10) {
 
-                        this.backDegsPerSec /= 10;
+                            return (this.steeringAngle > 0)? 10: -10;
 
-                    }
+                        } else {
 
-                    this.turnAngle = (this.turnAngle > 0)? this.turnAngle - this.backDegsPerSec * delta: this.turnAngle + this.backDegsPerSec * delta;
-
-                    this.turnAngle = (Math.abs(this.turnAngle) < 0.1)? 0: this.turnAngle;
-
-                }
-            },
-
-            setMaxTurnAngle: function(speed) {
-
-                if(speed > 20) {
-
-                    if(speed > 33) {
-
-                        if(this.maxTurnAngle != 10) {
-
-                            this.maxTurnAngle = 10;
+                            return (this.steeringAngle > 0)? -speed + 30: speed - 30;
 
                         };
 
-                    } else if(this.maxTurnAngle != 20) {
-
-                        this.maxTurnAngle = 20;
-
-                    };
-                    
-                } else if(this.maxTurnAngle != 30) {
-
-                    this.maxTurnAngle = 30;
-
                 };
+
+                return this.steeringAngle;
 
             },
 
             process: function(carsTurners, carsRotation, longForceDirection, turnDirection, interaxalDistance, speed, suspesionKinematicsZRotation, mesh) {
 
-                if(keys.info('left', true)) {
+                var angle = this.smoothTurn(speed);
 
-                    if(this.turnAngle < this.maxTurnAngle) {
+                if(angle > this.turnAngle) {
 
-                        this.turnAngle += this.degsPerSec * delta;
-
-                    } else if(this.turnAngle > this.maxTurnAngle + 3) {
-
-                        this.alignTurn();
-
-                    };
-
-                } else if(keys.info('right', true)) {
-
-                    if(this.turnAngle > -this.maxTurnAngle) {
-
-                        this.turnAngle -= this.degsPerSec * delta;
-
-                    } else if(this.turnAngle < -this.maxTurnAngle - 3) {
-
-                        this.alignTurn();
-
-                    };
+                    this.turnAngle += (angle - this.turnAngle)/10;
 
                 } else {
 
-                    this.alignTurn();
+                    this.turnAngle -= (this.turnAngle - angle)/10;
 
                 };
-
-                this.backDegsPerSec = 60;
 
                 this.turn(carsTurners, carsRotation, longForceDirection, turnDirection, interaxalDistance, speed, suspesionKinematicsZRotation, mesh);
 
@@ -126,7 +80,7 @@ define([],
 
                     ['STEERING',        'green'],
                     ['Turn Angle',      this.turnAngle],
-                    ['Max Turn Angle',  this.maxTurnAngle]
+                    ['Steering Turn Angle',  this.steeringAngle]
 
                 ];
 

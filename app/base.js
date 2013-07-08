@@ -9,20 +9,24 @@ var process, start;
 //Рисует серую сетку. Уравнение плоскости: x = z; y = 0;
 function grid(size) {
 
-    var step = 1;
+    var step = 1, k = 100;
 
     var geometry = new THREE.Geometry();
-    var material = new THREE.LineBasicMaterial( { color: 0xc0c0c0 } );
+    var material = new THREE.LineBasicMaterial( { color: 0xffffff } );
 
-    for ( var i = - size; i <= size; i += step ) {
+    for ( var i = - size / k; i <= size / k; i += step ) {
 
         geometry.vertices.push( new THREE.Vector3( - size, 0, i ) );
         geometry.vertices.push( new THREE.Vector3(   size, 0, i ) );
 
+    };
+
+    for ( var i = - size / k; i <= size / k; i += step ) {
+
         geometry.vertices.push( new THREE.Vector3( i, 0, - size ) );
         geometry.vertices.push( new THREE.Vector3( i, 0,   size ) );
 
-    }
+    };
 
     return new THREE.Line( geometry, material, THREE.LinePieces );
 
@@ -184,13 +188,16 @@ define([
     ], 
     function(THREE, meta, Stats) {
 
+        window.loader = new THREE.JSONLoader(true);
+
         start = function() {
 
             camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 0.1, 1000 );
-            camera.position.set( 15, 15, 15 );
+            camera.position.set( 0, 0, 0 );
+            camera.lookAt( new THREE.Vector3() );
 
             scene = new THREE.Scene();
-            scene.add(grid(100));
+            //scene.add(grid(10000));
 
             directionalLight = new THREE.DirectionalLight(0xffffff, 3);
             directionalLight.position.x = 5;
@@ -201,7 +208,9 @@ define([
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setClearColor(0xffffff, 1);
+            //renderer.setClearColor(0xffffff, 1);
+            //renderer.setClearColor(0xffaacc, 1);
+            renderer.setClearColor(0x101010, 1);
 
             stats = new Stats();
             stats.domElement.style.position = 'absolute';
@@ -211,6 +220,8 @@ define([
             document.body.appendChild(stats.domElement);
 
             document.body.appendChild(renderer.domElement);
+
+            meta.changeState();
 
             process();
 
@@ -223,8 +234,8 @@ define([
                 delta = clock.getDelta();
 
                 //Если я перешел на другую вкладку или т.п.?
-                if(delta > 0.1) {
-                    delta = 0.1;
+                if(delta > 0.07) {
+                    delta = 0.05;
                 }
 
                 //Точка входа в точки входа игровой логики.

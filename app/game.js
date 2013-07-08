@@ -54,9 +54,21 @@ define([
 
                 transmission.process(engine.torq, engine.rpm);
 
-                chassis.process(transmission.rpm, navi.brakes, car.bones.wheels, carConsts.wheelRatio, navi.throttle, transmission.currentGear, transmission.gears[transmission.currentGear]);
+                if(transmission.engineBrake > 0) {
 
-                steering.setMaxTurnAngle(chassis.speed);
+                    engine.rpm -= transmission.engineBrake;
+                    
+                    if(engine.rpm < engine.minRpm) {
+
+                        engine.rpm = engine.minRpm;
+
+                    };
+
+                    transmission.engineBrake = 0;
+
+                }
+
+                chassis.process(transmission.rpm, navi.brakes, car.bones.wheels, carConsts.wheelRatio, navi.throttle, transmission.currentGear, transmission.gears[transmission.currentGear]);
 
                 suspesionKinematics.process(car.bones.car, steering.turnAngle, chassis.speed, chassis.acceleration);
 
@@ -66,21 +78,27 @@ define([
 
                 this.calculateNewPosition();
 
-                view.process(car.position, chassis.speed, steering.turnAngle, steering.turnRatio);
+                var angle = view.process(car.position, chassis.speed, steering.turnAngle, steering.turnRatio);
 
                 mesh.translateZ(carConsts.interaxalDistance / 2);
 
-                info(engine.info(), transmission.info(), chassis.info(), navi.info(), view.info(), suspesionKinematics.info(), steering.info(), this.info());
+                this.updateDashboard(angle);
+
+                //info(engine.info(), transmission.info(), chassis.info(), navi.info(), view.info(), suspesionKinematics.info(), steering.info(), this.info());
 
             };
 
             this.calculateForceVectors = function() {
 
                 if(chassis.speed > 1) {
-                    this.inertionYAngle += (this.rotation.yAngle - this.inertionYAngle) / 20 * 30 / chassis.speed;    
+
+                    this.inertionYAngle += (this.rotation.yAngle - this.inertionYAngle) / 20 * 30 / chassis.speed;
+
                 } else {
+
                     this.inertionYAngle = this.rotation.yAngle || 0;
-                }
+
+                };
 
                 this.C.x = Math.sin(this.inertionYAngle);
                 this.C.z = Math.cos(this.inertionYAngle);
@@ -114,6 +132,139 @@ define([
 
                 scene.remove(this.C.line);
                 this.C.line = vec(this.position, this.position.clone().add(this.C.clone().multiplyScalar(10)), 0xff0000);
+
+            };
+
+            this.operate = function(acceleration, turnabout) {
+
+                //
+                acceleration = 2 * acceleration / window.innerHeight - 1;
+                turnabout = 2 * turnabout / window.innerWidth - 1;
+
+                turnabout *= -Math.cos((1 - Math.abs(turnabout)) * Math.PI + Math.PI) / 2 + 0.5;
+
+                navi.throttle = (acceleration < 0)? -acceleration: 0;
+                navi.brakes = (acceleration > 0)? acceleration: 0;
+                
+                steering.steeringAngle = -turnabout * 30;
+
+            };
+
+            this.dashboard = {
+                meterScale: null,
+                speedmeter: null,
+                rpmScale: null,
+                rpm: null
+            };
+
+            this.initDashboard = function() {
+
+                var that = this;
+
+                loader.load(
+                    'data/models/arrow.js',
+                    function(geometry, materials) {
+
+                        var material;// = new THREE.MeshFaceMaterial(materials);
+
+                        material = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+
+                        that.dashboard.speedmeter = new THREE.Mesh(geometry, material);
+
+                        that.dashboard.speedmeter.scale.set(0.03, 0.03, 0.03);
+
+                        scene.add(that.dashboard.speedmeter);
+
+                        window.s = that.dashboard.speedmeter;
+
+                        material = new THREE.MeshBasicMaterial({ color: 0x0099ff });
+
+                        that.dashboard.rpm = new THREE.Mesh(geometry, material);
+
+                        that.dashboard.rpm.scale.set(0.03, 0.03, 0.03);
+
+                        scene.add(that.dashboard.rpm);
+
+                    }
+                );
+
+                loader.load(
+                    'data/models/meter.js',
+                    function(geometry, materials) {
+
+                        var material;// = new THREE.MeshFaceMaterial(materials);
+                        material = new THREE.MeshBasicMaterial({ color: 0xaa99ff });
+
+                        that.dashboard.meterScale = new THREE.Mesh(geometry, material);
+
+                        that.dashboard.meterScale.scale.set(0.225,0.225,0.225);
+
+                        window.m = that.dashboard.meterScale;
+
+                        scene.add(that.dashboard.meterScale);
+
+                        material = new THREE.MeshBasicMaterial({ color: 0xff5533 });
+
+                        that.dashboard.rpmScale = new THREE.Mesh(geometry, material);
+
+                        that.dashboard.rpmScale.scale.set(0.225,0.225,0.225);
+
+                        scene.add(that.dashboard.rpmScale);
+
+                    }
+                );
+
+            };
+
+            var myz = 0;
+
+            this.updateDashboard = function(angle) {
+
+                if(!this.dashboard.speedmeter || !this.dashboard.meterScale) {
+
+                    return false;
+
+                };
+
+                var tmpPosition = camera.position.clone();
+
+                tmpPosition.x += 2 * Math.sin( Math.PI + angle );
+                tmpPosition.z += 2 * Math.cos( Math.PI + angle );
+
+                //Eденичный вектор, проходящий от камеры до авто. Изображает направление камеры.
+                var cameraLook = camera.position.clone()
+                    .sub(car.position.clone().setY(camera.position.y));
+                cameraLook.normalize();
+
+                //Вектор, характеризующий поворот вокруг Y плоскости,
+                //вдоль которого будут располагаться приборы.
+                var dashboardHorizone = cameraLook.clone()
+                    .transformDirection(new THREE.Matrix4().makeRotationY(-Math.PI / 180 * 90));
+
+
+                this.dashboard.speedmeter.position = tmpPosition.clone();
+                this.dashboard.speedmeter.rotation = camera.rotation.clone();
+
+                //Перемещаем вдоль вектора влево-вправо.
+                this.dashboard.speedmeter.position.add(dashboardHorizone.clone().multiplyScalar(0.5));
+
+                //Коипруем поворот тут, т.к. потом он изменитяся у стрелки в зависимости от скорости.
+                this.dashboard.meterScale.position = this.dashboard.speedmeter.position.clone();
+                this.dashboard.meterScale.rotation = this.dashboard.speedmeter.rotation.clone();
+                this.dashboard.meterScale.position.y = this.dashboard.speedmeter.position.y = 4;
+
+                this.dashboard.speedmeter.rotation.z -= Math.PI / 180 * chassis.speed;
+
+                this.dashboard.rpm.position = tmpPosition.clone();
+                this.dashboard.rpm.rotation = camera.rotation.clone();
+
+                this.dashboard.rpm.position.add(dashboardHorizone.clone().multiplyScalar(-0.5));
+
+                this.dashboard.rpmScale.position = this.dashboard.rpm.position.clone();
+                this.dashboard.rpmScale.rotation = camera.rotation.clone();
+                this.dashboard.rpmScale.position.y = this.dashboard.rpm.position.y = 4;
+
+                this.dashboard.rpm.rotation.z -= Math.PI / 180 * engine.rpm / 50;
 
             };
 
@@ -171,38 +322,83 @@ define([
 
         var game = new (function() {
 
-            var inited = false;
+            var game = this;
 
-            var loader = new THREE.JSONLoader(true);
+            var init = function() {
 
-            loader.load(
-                'data/models/DodgeChallenger1970.js',
-                function(geometry, materials) {
+                init.inProgress = true;
 
-                    for(var i = 0; i < materials.length; i++) {
+                loader.load(
+                    'data/models/DodgeChallenger1970.js',
+                    function(geometry, materials) {
 
-                        materials[i].skinning = true;
+                        for(var i = 0; i < materials.length; i++) {
 
-                    };
+                            materials[i].skinning = true;
 
-                    var material = new THREE.MeshFaceMaterial(materials);
+                        };
 
-                    mesh = new THREE.SkinnedMesh(geometry, material);
+                        var material = new THREE.MeshFaceMaterial(materials);
 
-                    scene.add(mesh);
+                        mesh = new THREE.SkinnedMesh(geometry, material);
 
-                    car = new carModel(mesh.bones, mesh);
+                        scene.add(mesh);
 
-                    inited = true;
+                        car = new carModel(mesh.bones, mesh);
 
-                }
-            );
+                        car.initDashboard();
+
+                        game.carMesh = mesh;
+                        game.car = car;
+
+                        init = null;
+
+                    }
+                );
+
+            };
 
             this.process = function() {
 
-                if(inited) {
+                if(init) {
+
+                    if(!init.inProgress) {
+
+                        init();
+
+                    };
+
+                } else {
 
                     car.process();
+
+                };
+
+            };
+
+            this.mouse = function(meta, type, e) {
+
+                if(type == 'move') {
+
+                    car.operate(e.clientY, e.clientX);
+
+                } else if(type == 'click') {
+
+                    meta.changeState();
+
+                } else if(type == 'wheel') {
+
+                    var direction = e;
+
+                    if(direction > 0) {
+
+                        transmission.gearUp();
+
+                    } else {
+
+                        transmission.gearDown();
+
+                    };
 
                 };
 
