@@ -1,13 +1,6 @@
 requirejs.config({
     paths: {
-        jquery: 'libs/jquery',
-        underscore: 'libs/underscore',
-        backbone: 'libs/backbone',
-        bootstrap: 'libs/bootstrap/js/bootstrap.min',
-        jqueryui: '//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min',
-
-        three: '../t/build/three',
-        //three: 'libs/three.min',
+        three: 'libs/three.min',
         stats: 'libs/stats.min',
 
         font: 'data/fonts/helvetiker_bold.typeface',
@@ -26,20 +19,6 @@ requirejs.config({
         suspesionKinematics: 'app/carPhysics/suspesionKinematics'
     },
     shim: {
-        backbone: {
-            deps: ['underscore', 'jquery'],
-            exports: 'Backbone'
-        },
-        bootstrap: {
-            deps: ['jquery']
-        },
-        jqueryui: {
-            deps: ['jquery']
-        },
-        underscore: {
-            exports: '_'
-        },
-
         three: {
             exports: 'THREE'
         },
