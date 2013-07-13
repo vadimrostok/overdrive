@@ -3,7 +3,7 @@ define([],
 
         var view = {
 
-            distance: 15,
+            distance: 10,
             angle: Math.PI,
             localAngle: 0,
             userTurnAroundAngle: 0,
@@ -22,10 +22,10 @@ define([],
                 var resultAngle = this.angle + Math.PI / 180 * this.localAngle + Math.PI / 180 * this.userTurnAroundAngle;
 
                 camera.position.x = carPosition.x + this.distance * Math.sin( resultAngle );
-                camera.position.y = carPosition.y + 5;
+                camera.position.y = carPosition.y + 5 - (throttle - brakes) * 3;
                 camera.position.z = carPosition.z  + this.distance * Math.cos( resultAngle );
 
-                camera.lookAt(carPosition.clone().setY(carPosition.y + 2.5 + (throttle - brakes) * 5));
+                camera.lookAt(carPosition.clone().setY(carPosition.y + 2.5 + (throttle - brakes) * 3));
 
                 return resultAngle;
 

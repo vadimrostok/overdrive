@@ -46,7 +46,7 @@ define([
 
             this.process = function() {
 
-                navi.process();
+                navi.process(transmission.currentGear);
 
                 steering.process(car.bones.turners, car.rotation, car.N, car.P, carConsts.interaxalDistance, chassis.speed, suspesionKinematics.zRotation, mesh);
 
@@ -76,6 +76,9 @@ define([
 
                 chassis.inertionForce(this.scalarInertionSpeed);
 
+                camera.fov = 40 + chassis.speed;
+                camera.updateProjectionMatrix();
+
                 this.calculateNewPosition();
 
                 var angle = view.process(car.position, chassis.speed, steering.turnAngle, steering.turnRatio, navi.throttle, navi.brakes);
@@ -84,9 +87,11 @@ define([
 
                 this.updateDashboard(angle);
 
+                this.updateLights();
+
                 this.computeLightsPosition();
 
-                //info(engine.info(), transmission.info(), chassis.info(), navi.info(), view.info(), suspesionKinematics.info(), steering.info(), this.info());
+                info(chassis.speed, engine.rpm, transmission.currentGear);
 
             };
 
@@ -139,7 +144,6 @@ define([
 
             this.operate = function(acceleration, turnabout) {
 
-                //
                 acceleration = 2 * acceleration / window.innerHeight - 1;
                 turnabout = 2 * turnabout / window.innerWidth - 1;
 
@@ -159,6 +163,44 @@ define([
                 rpm: null
             };
 
+            this.initLights = function() {
+
+                var pivot;
+
+                lights.back = {};
+                lights.back.left = new THREE.PointLight(0xff5f35, 3);
+                lights.back.left.position.set(0.9, 1, 1.2);
+                pivot = new THREE.Object3D();
+                pivot.position.set(0, 0, 0);
+                pivot.add(lights.back.left);
+                lights.back.left = pivot.clone();
+                lights.back.left.position = this.position;
+
+                lights.back.right = new THREE.PointLight(0xff5f35, 3);
+                lights.back.right.position.set(-0.9, 1, 1.2);
+                pivot = new THREE.Object3D();
+                pivot.position.set(0, 0, 0);
+                pivot.add(lights.back.right);
+                lights.back.right = pivot.clone();
+                lights.back.right.position = this.position;
+
+                scene.add(lights.back.left);
+                scene.add(lights.back.right);
+
+            };
+
+            this.updateLights = function() {
+
+                if(navi.brakes > 0) {
+                    lights.back.left.children[0].intensity = lights.back.right.children[0].intensity = 5;
+                } else {
+                    lights.back.left.children[0].intensity = lights.back.right.children[0].intensity = 2;
+                };
+
+                lights.back.left.rotation.y = lights.back.right.rotation.y = view.angle;
+
+            };
+
             this.initDashboard = function() {
 
                 var that = this;
@@ -167,9 +209,9 @@ define([
                     'data/models/arrow.js',
                     function(geometry, materials) {
 
-                        var material;// = new THREE.MeshFaceMaterial(materials);
+                        var material;
 
-                        material = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+                        material = new THREE.MeshBasicMaterial({ color: 0x99efca });
 
                         that.dashboard.speedmeter = new THREE.Mesh(geometry, material);
 
@@ -179,7 +221,7 @@ define([
 
                         window.s = that.dashboard.speedmeter;
 
-                        material = new THREE.MeshBasicMaterial({ color: 0x0099ff });
+                        material = new THREE.MeshBasicMaterial({ color: 0xcc3355 });
 
                         that.dashboard.rpm = new THREE.Mesh(geometry, material);
 
@@ -194,8 +236,8 @@ define([
                     'data/models/meter.js',
                     function(geometry, materials) {
 
-                        var material;// = new THREE.MeshFaceMaterial(materials);
-                        material = new THREE.MeshBasicMaterial({ color: 0xaa99ff });
+                        var material;
+                        material = new THREE.MeshBasicMaterial({ color: 0x333333 });
 
                         that.dashboard.meterScale = new THREE.Mesh(geometry, material);
 
@@ -205,7 +247,7 @@ define([
 
                         scene.add(that.dashboard.meterScale);
 
-                        material = new THREE.MeshBasicMaterial({ color: 0xff5533 });
+                        material = new THREE.MeshBasicMaterial({ color: 0x333333 });
 
                         that.dashboard.rpmScale = new THREE.Mesh(geometry, material);
 
@@ -248,25 +290,25 @@ define([
                 this.dashboard.speedmeter.rotation = camera.rotation.clone();
 
                 //Перемещаем вдоль вектора влево-вправо.
-                this.dashboard.speedmeter.position.add(dashboardHorizone.clone().multiplyScalar(0.5));
+                this.dashboard.speedmeter.position.add(dashboardHorizone.clone().multiplyScalar(0.8));
 
                 //Коипруем поворот тут, т.к. потом он изменитяся у стрелки в зависимости от скорости.
                 this.dashboard.meterScale.position = this.dashboard.speedmeter.position.clone();
                 this.dashboard.meterScale.rotation = this.dashboard.speedmeter.rotation.clone();
-                this.dashboard.meterScale.position.y = this.dashboard.speedmeter.position.y = 4 + (navi.throttle - navi.brakes) * 5 * (2 / 13);
+                this.dashboard.meterScale.position.y = this.dashboard.speedmeter.position.y = 4 - (navi.throttle - navi.brakes) * 3 + (navi.throttle - navi.brakes) * 5 * (2 / 13);
 
-                this.dashboard.speedmeter.rotation.z -= Math.PI / 180 * chassis.speed;
+                this.dashboard.speedmeter.rotation.z -= Math.PI / 180 * chassis.speed * 3;
 
                 this.dashboard.rpm.position = tmpPosition.clone();
                 this.dashboard.rpm.rotation = camera.rotation.clone();
 
-                this.dashboard.rpm.position.add(dashboardHorizone.clone().multiplyScalar(-0.5));
+                this.dashboard.rpm.position.add(dashboardHorizone.clone().multiplyScalar(-0.8));
 
                 this.dashboard.rpmScale.position = this.dashboard.rpm.position.clone();
                 this.dashboard.rpmScale.rotation = camera.rotation.clone();
-                this.dashboard.rpmScale.position.y = this.dashboard.rpm.position.y = 4 + (navi.throttle - navi.brakes) * 5 * (2 / 13);
+                this.dashboard.rpmScale.position.y = this.dashboard.rpm.position.y = 4 - (navi.throttle - navi.brakes) * 3 + (navi.throttle - navi.brakes) * 5 * (2 / 13);
 
-                this.dashboard.rpm.rotation.z -= Math.PI / 180 * engine.rpm / 50;
+                this.dashboard.rpm.rotation.z -= Math.PI / 180 * engine.rpm / 35;
 
             };
 
@@ -369,6 +411,7 @@ define([
                         car = new carModel(mesh.bones, mesh);
 
                         car.initDashboard();
+                        car.initLights();
 
                         lights.directional.target.position = skyBox.position = car.position;
 

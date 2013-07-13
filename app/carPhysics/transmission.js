@@ -7,7 +7,7 @@ define([],
             rpm: 0,
             //Момент силы (вращения).
             torq: 0,
-            //Коэффициент передаци главной пары.
+            //Коэффициент передачи главной пары.
             topGear: 3.7,
             efficiency: 0.9,
             //Падение оборотов двигателя при переключение скоростей. Обычно оно зависит от того в каком 
@@ -40,7 +40,7 @@ define([],
                 };
 
                 this.engineBrake = (this.currentGear > 1)? this.gears[this.currentGear] * 1000: 500;
-
+                
                 return this.currentGear;
 
             },

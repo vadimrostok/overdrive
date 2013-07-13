@@ -10,9 +10,9 @@ define([],
             //Коэффициент торможения. От 0 до 1. 
             brakes: 0,
 
-            process: function() {
+            process: function(gear) {
 
-                this.clutch = 0.0;
+                this.clutch = (gear == '0')? 0.0: 0.8;
 
                 //!!!
                 if(keys.info('L', true)) {

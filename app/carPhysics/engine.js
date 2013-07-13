@@ -3,6 +3,8 @@ define([],
 
         var getTorque = function(rpm) {
 
+            powerFactor = 1.1;
+
             //torque-rpm-dependence
             var trd = {
                 //От 1000 до 2000 rpm. Далее аналогично.
@@ -20,7 +22,7 @@ define([],
 
             if(!trd[index]) {
 
-                return trd[1];
+                return trd[1] * powerFactor;
 
             } else if(trd[index + 1]) {
 
@@ -33,7 +35,7 @@ define([],
 
             }
 
-            return t;
+            return t * powerFactor;
 
         };
 

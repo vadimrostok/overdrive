@@ -1,6 +1,6 @@
 var container, stats;
 
-var camera, scene, renderer, directionalLight, skyBox;
+var camera, scene, renderer, directionalLight, skyBox, mirrorSphereCamera = [], mirrorSphere = [];
 
 var delta;
 
@@ -143,6 +143,7 @@ var keysModel = function() {
             case 'esc':     obj = keysBuffer[27]; break;
             case 'shift':   obj = keysBuffer[16]; break;
             case 'ctrl':    obj = keysBuffer[17]; break;
+            case 'space':   obj = keysBuffer[32]; break;
             default:        obj = (typeof key == 'string')? keysBuffer[key.charCodeAt()]: keysBuffer[key.charCodeAt()] || false;
         }
         return (obj && onlyIsPressed)? obj.isPressed: obj;
@@ -155,39 +156,13 @@ var keysModel = function() {
 document.addEventListener('keydown', keys.down, true);
 document.addEventListener('keyup', keys.up, true);
 
-var info = function() {
+var info = function(speed, rpm, gear) {
 
-    //document.getElementById('info').innerHTML = '';
-    
-    var html = '';
-
-    for(var i = 0; i < arguments.length; i++) {
-
-        if(typeof arguments[i][0] == 'string') {
-
-            html += '<div class="info">' + arguments[i][0] + '<br />';
-
-        } else {
-
-            html += '<div class="info ' + arguments[i][0][1] + '">' + arguments[i][0][0] + '<br />';
-
-        };
-
-        for(var j = 1; j < arguments[i].length; j++) {
-
-            html += arguments[i][j][0] + ': ' + arguments[i][j][1] + '<br/>';
-
-        }
-
-        html += '</div>';
-
-    };
-
-    document.getElementById('info').innerHTML = html;
+    document.querySelector('#speed').innerHTML = Math.floor(speed * 3.6);
+    document.querySelector('#rpm').innerHTML = Math.floor(rpm);
+    document.querySelector('#gear').innerHTML = gear;
 
 };
-
-
 
 define([
         'three',
@@ -209,10 +184,10 @@ define([
             scene.fog = new THREE.FogExp2(0xffffff, 0.00025);
 
             lights.directional = new THREE.DirectionalLight(0xccccff, 2);
-            lights.directional.offset = {x: 5, y: 7, z: 3};
+            lights.directional.offset = {x: 5, y: 5, z: 3};
             lights.directional.position.set(3, 7, 3);
             lights.directional.castShadow = true;
-            lights.directional.shadowCameraVisible = true;
+            //lights.directional.shadowCameraVisible = true;
 
             lights.directional.shadowCameraNear = 5;
             lights.directional.shadowCameraFar = 15;
@@ -256,6 +231,23 @@ define([
                 reflectivity: 0.4
             });
 
+            for(var i = 0; i < 4; i++) {
+
+                var sphereGeom =  new THREE.SphereGeometry( 5 * (i + 1), 32, 32 ); // radius, segmentsWidth, segmentsHeight
+                mirrorSphereCamera[i] = new THREE.CubeCamera( 0.1, 1000, 512 );
+                scene.add( mirrorSphereCamera[i] );
+                var mirrorSphereMaterial = new THREE.MeshBasicMaterial( { envMap: mirrorSphereCamera[i].renderTarget } );
+                mirrorSphere[i] = new THREE.Mesh( sphereGeom, mirrorSphereMaterial );
+                mirrorSphereCamera[i].position = mirrorSphere[i].position;
+                scene.add(mirrorSphere[i]);
+
+            };
+
+            mirrorSphere[0].position.set( 100, 10,  100);
+            mirrorSphere[1].position.set(-100, 20,  100);
+            mirrorSphere[2].position.set( 100, 40, -100);
+            mirrorSphere[3].position.set(-100, 80, -100);
+
             var floorTexture = new THREE.ImageUtils.loadTexture( 'data/textures/checkerboard.jpg' );
             floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
             floorTexture.repeat.set( 100, 100 );
@@ -284,7 +276,7 @@ define([
 
             document.body.appendChild(stats.domElement);
 
-            document.body.appendChild(renderer.domElement);
+            document.getElementById('canvas-box').appendChild(renderer.domElement);
 
             meta.changeState();
 
@@ -312,6 +304,14 @@ define([
                     requestAnimationFrame( process );
 
                 //}, 0);
+
+                for(var i = 0; i < 4; i++) {
+
+                    mirrorSphere[i].visible = false;
+                    mirrorSphereCamera[i].updateCubeMap( renderer, scene );
+                    mirrorSphere[i].visible = true;
+
+                }
 
                 renderer.render( scene, camera );
 

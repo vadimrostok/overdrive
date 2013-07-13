@@ -30,7 +30,17 @@ define([
                     var rot_xyz = arguments[i][1];
                     var text = arguments[i][2];
 
-                    newGeometry = new THREE.TextGeometry(text, params);
+                    if(arguments[i][3]) {
+                        newGeometry = new THREE.TextGeometry(text, {
+                            size: arguments[i][3],
+                            height: textHeight,
+                            font: 'helvetiker',
+                            weight: 'bold',
+                            style: 'normal',
+                        });
+                    } else {
+                        newGeometry = new THREE.TextGeometry(text, params);
+                    }
 
                     THREE.GeometryUtils.center(newGeometry);
 
@@ -59,12 +69,13 @@ define([
             var width = height * window.innerWidth / window.innerHeight;
 
             var menuMesh = setText(
-                [[0, 0.8 * height, 0],  turn, 'Accelerate'],
-                [[0, -0.8 * height, 0], turn, 'Brake'],
-                [[-0.8 * width, 0, 0],  turn, 'Left'],
-                [[0.8 * width, 0, 0],   turn, 'Right'],
-                [[0, 0.3, 0],           turn, 'Click to start'],
-                [[0, -0.3, 0],          turn, 'the game']
+                [[0, 0.8 * height, 0],      turn, 'Accelerate'],
+                [[0, -0.8 * height, 0],     turn, 'Brake'],
+                [[-0.8 * width, 0, 0],      turn, 'Left'],
+                [[0.8 * width, 0, 0],       turn, 'Right'],
+                [[0, height / 2 - .2, 0],   turn, 'Spin mousewheel to change gears', .3],
+                [[0, 0.3, 0],               turn, 'Click to start'],
+                [[0, -0.3, 0],              turn, 'the game']
             );
 
             this.mesh;
