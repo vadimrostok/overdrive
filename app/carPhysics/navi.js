@@ -12,7 +12,7 @@ define([],
 
             process: function() {
 
-                this.clutch = 0.8;
+                this.clutch = 0.0;
 
                 //!!!
                 if(keys.info('L', true)) {

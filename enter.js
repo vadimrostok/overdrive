@@ -58,3 +58,6 @@ require([
 
     }
 );
+
+window.app = {};
+app.data = {};

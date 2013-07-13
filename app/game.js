@@ -78,11 +78,13 @@ define([
 
                 this.calculateNewPosition();
 
-                var angle = view.process(car.position, chassis.speed, steering.turnAngle, steering.turnRatio);
+                var angle = view.process(car.position, chassis.speed, steering.turnAngle, steering.turnRatio, navi.throttle, navi.brakes);
 
                 mesh.translateZ(carConsts.interaxalDistance / 2);
 
                 this.updateDashboard(angle);
+
+                this.computeLightsPosition();
 
                 //info(engine.info(), transmission.info(), chassis.info(), navi.info(), view.info(), suspesionKinematics.info(), steering.info(), this.info());
 
@@ -251,7 +253,7 @@ define([
                 //Коипруем поворот тут, т.к. потом он изменитяся у стрелки в зависимости от скорости.
                 this.dashboard.meterScale.position = this.dashboard.speedmeter.position.clone();
                 this.dashboard.meterScale.rotation = this.dashboard.speedmeter.rotation.clone();
-                this.dashboard.meterScale.position.y = this.dashboard.speedmeter.position.y = 4;
+                this.dashboard.meterScale.position.y = this.dashboard.speedmeter.position.y = 4 + (navi.throttle - navi.brakes) * 5 * (2 / 13);
 
                 this.dashboard.speedmeter.rotation.z -= Math.PI / 180 * chassis.speed;
 
@@ -262,9 +264,21 @@ define([
 
                 this.dashboard.rpmScale.position = this.dashboard.rpm.position.clone();
                 this.dashboard.rpmScale.rotation = camera.rotation.clone();
-                this.dashboard.rpmScale.position.y = this.dashboard.rpm.position.y = 4;
+                this.dashboard.rpmScale.position.y = this.dashboard.rpm.position.y = 4 + (navi.throttle - navi.brakes) * 5 * (2 / 13);
 
                 this.dashboard.rpm.rotation.z -= Math.PI / 180 * engine.rpm / 50;
+
+            };
+
+            this.computeLightsPosition = function() {
+
+                var carPosition = this.position;
+
+                lights.directional.position.set(
+                    lights.directional.offset.x + carPosition.x,
+                    lights.directional.offset.y + carPosition.y,
+                    lights.directional.offset.z + carPosition.z
+                );
 
             };
 
@@ -334,6 +348,12 @@ define([
 
                         for(var i = 0; i < materials.length; i++) {
 
+                            if(materials[i].name == 'Car') {
+
+                                materials[i] = app.data.carMaterial;
+                                
+                            };
+
                             materials[i].skinning = true;
 
                         };
@@ -342,11 +362,15 @@ define([
 
                         mesh = new THREE.SkinnedMesh(geometry, material);
 
+                        mesh.castShadow = true;
+
                         scene.add(mesh);
 
                         car = new carModel(mesh.bones, mesh);
 
                         car.initDashboard();
+
+                        lights.directional.target.position = skyBox.position = car.position;
 
                         game.carMesh = mesh;
                         game.car = car;

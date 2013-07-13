@@ -8,7 +8,7 @@ define([],
             localAngle: 0,
             userTurnAroundAngle: 0,
 
-            process: function(carPosition, speed, turnAngle, turnRatio) {
+            process: function(carPosition, speed, turnAngle, turnRatio, throttle, brakes) {
 
                 var carPosition = carPosition.clone();
 
@@ -25,7 +25,7 @@ define([],
                 camera.position.y = carPosition.y + 5;
                 camera.position.z = carPosition.z  + this.distance * Math.cos( resultAngle );
 
-                camera.lookAt(carPosition.clone().setY(carPosition.y + 2.5));
+                camera.lookAt(carPosition.clone().setY(carPosition.y + 2.5 + (throttle - brakes) * 5));
 
                 return resultAngle;
 

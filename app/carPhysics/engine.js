@@ -46,9 +46,9 @@ define([],
             minRpm: 1000,
             maxRpm: 6000,
             //Ускорение за секунду без учета сцепления.
-            rpm_step: 3500,
+            rpm_step: 4500,
             //Торможение закрытой дроссельной заслонке.
-            rpm_backward_step: 1000,
+            rpm_backward_step: 3000,
 
             process: function(throttle, clutch) {
 

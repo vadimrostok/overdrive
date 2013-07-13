@@ -1,10 +1,16 @@
 var container, stats;
 
-var camera, scene, renderer, directionalLight;
+var camera, scene, renderer, directionalLight, skyBox;
 
 var delta;
 
 var process, start;
+
+var lights = {
+    directional: null,
+    headlights: null,
+    backlights: null
+};
 
 //Рисует серую сетку. Уравнение плоскости: x = z; y = 0;
 function grid(size) {
@@ -181,6 +187,8 @@ var info = function() {
 
 };
 
+
+
 define([
         'three',
         'meta',
@@ -192,25 +200,82 @@ define([
 
         start = function() {
 
+            //camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 0.1, 1000 );
             camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 0.1, 1000 );
             camera.position.set( 0, 0, 0 );
             camera.lookAt( new THREE.Vector3() );
 
             scene = new THREE.Scene();
-            //scene.add(grid(10000));
+            scene.fog = new THREE.FogExp2(0xffffff, 0.00025);
 
-            directionalLight = new THREE.DirectionalLight(0xffffff, 3);
-            directionalLight.position.x = 5;
-            directionalLight.position.y = 5;
-            directionalLight.position.z = 5;
-            directionalLight.position.normalize();
-            scene.add(directionalLight);
+            lights.directional = new THREE.DirectionalLight(0xccccff, 2);
+            lights.directional.offset = {x: 5, y: 7, z: 3};
+            lights.directional.position.set(3, 7, 3);
+            lights.directional.castShadow = true;
+            lights.directional.shadowCameraVisible = true;
+
+            lights.directional.shadowCameraNear = 5;
+            lights.directional.shadowCameraFar = 15;
+            lights.directional.shadowCameraLeft = -5;
+            lights.directional.shadowCameraRight = 5;
+            lights.directional.shadowCameraTop = 5;
+            lights.directional.shadowCameraBottom = -5;
+
+            lights.directional.shadowDarkness = 0.8;
+
+            scene.add(lights.directional);
+
+            var imagePrefix = 'data/textures/box/interstellar-';
+            var directions  = ['xpos', 'xneg', 'ypos', 'yneg', 'zpos', 'zneg'];
+            var imageSuffix = '.jpg';
+            var skyGeometry = new THREE.CubeGeometry( 1000, 1000, 1000 );   
+            
+            var materialArray = [], textureArray = [];
+            
+            for (var i = 0; i < 6; i++) {
+
+                textureArray[i] = imagePrefix + directions[i] + imageSuffix;
+
+                materialArray.push(new THREE.MeshBasicMaterial({
+                    map: THREE.ImageUtils.loadTexture( textureArray[i] ),
+                    side: THREE.BackSide
+                }));
+
+            };
+
+            var skyMaterial = new THREE.MeshFaceMaterial(materialArray);
+            skyBox = new THREE.Mesh(skyGeometry, skyMaterial);
+            scene.add(skyBox);
+
+            var textureCube = THREE.ImageUtils.loadTextureCube( textureArray );
+
+            app.data.carMaterial = new THREE.MeshLambertMaterial( {
+                color: 0xdd4411,
+                envMap: textureCube,
+                combine: THREE.MixOperation,
+                reflectivity: 0.4
+            });
+
+            var floorTexture = new THREE.ImageUtils.loadTexture( 'data/textures/checkerboard.jpg' );
+            floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
+            floorTexture.repeat.set( 100, 100 );
+            var floorMaterial = new THREE.MeshLambertMaterial( { map: floorTexture,  /*transparent: true, opacity: 0.5,*/envMap: textureCube,
+                combine: THREE.MixOperation,
+                reflectivity: 0.4 } );
+            var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 100, 100);
+            var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.position.y = 0;
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+            window.floor=floor
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            //renderer.setClearColor(0xffffff, 1);
-            //renderer.setClearColor(0xffaacc, 1);
             renderer.setClearColor(0x101010, 1);
+
+            renderer.shadowMapEnabled = true;
+            renderer.shadowMapSoft = true;
 
             stats = new Stats();
             stats.domElement.style.position = 'absolute';
