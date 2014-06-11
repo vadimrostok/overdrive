@@ -126,6 +126,7 @@ var keysModel = function() {
         keysBuffer[e.keyCode].isPressed = true;
     };
     this.up = function(e) {
+        console.log("up", e, onKeys);
         checkKeyObjectExistence(e.keyCode);
         pressComplete(e.keyCode);
         keysBuffer[e.keyCode].isPressed = false;

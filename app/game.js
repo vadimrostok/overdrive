@@ -375,10 +375,14 @@ define([
 
         }, car;
 
+        keys.on(16 /*+*/, function() {transmission.gearUp();});
+        keys.on(80 /*+*/, function() {transmission.gearUp();});
         keys.on(107 /*+*/, function() {transmission.gearUp();});
         keys.on(117 /*+*/, function() {transmission.gearUp();});
         keys.on(109 /*-*/, function() {transmission.gearDown();});
         keys.on(100 /*-*/, function() {transmission.gearDown();});
+        keys.on(78 /*-*/, function() {transmission.gearDown();});
+        keys.on(189 /*-*/, function() {transmission.gearDown();});
 
         var game = new (function() {
 
