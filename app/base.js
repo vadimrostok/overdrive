@@ -168,7 +168,7 @@ define([
         'three',
         'meta',
         'stats'
-    ], 
+    ],
     function(THREE, meta, Stats) {
 
         window.loader = new THREE.JSONLoader(true);
@@ -203,10 +203,10 @@ define([
             var imagePrefix = 'data/textures/box/interstellar-';
             var directions  = ['xpos', 'xneg', 'ypos', 'yneg', 'zpos', 'zneg'];
             var imageSuffix = '.jpg';
-            var skyGeometry = new THREE.CubeGeometry( 1000, 1000, 1000 );   
-            
+            var skyGeometry = new THREE.CubeGeometry( 1000, 1000, 1000 );
+
             var materialArray = [], textureArray = [];
-            
+
             for (var i = 0; i < 6; i++) {
 
                 textureArray[i] = imagePrefix + directions[i] + imageSuffix;
@@ -231,25 +231,25 @@ define([
                 reflectivity: 0.4
             });
 
-            for(var i = 0; i < 4; i++) {
+            // for(var i = 0; i < 4; i++) {
 
-                var sphereGeom =  new THREE.SphereGeometry( 5 * (i + 1), 32, 32 ); // radius, segmentsWidth, segmentsHeight
-                mirrorSphereCamera[i] = new THREE.CubeCamera( 0.1, 1000, 512 );
-                scene.add( mirrorSphereCamera[i] );
-                var mirrorSphereMaterial = new THREE.MeshBasicMaterial( { envMap: mirrorSphereCamera[i].renderTarget } );
-                mirrorSphere[i] = new THREE.Mesh( sphereGeom, mirrorSphereMaterial );
-                mirrorSphereCamera[i].position = mirrorSphere[i].position;
-                scene.add(mirrorSphere[i]);
+            //     var sphereGeom =  new THREE.SphereGeometry( 5 * (i + 1), 32, 32 ); // radius, segmentsWidth, segmentsHeight
+            //     mirrorSphereCamera[i] = new THREE.CubeCamera( 0.1, 1000, 512 );
+            //     scene.add( mirrorSphereCamera[i] );
+            //     var mirrorSphereMaterial = new THREE.MeshBasicMaterial( { envMap: mirrorSphereCamera[i].renderTarget } );
+            //     mirrorSphere[i] = new THREE.Mesh( sphereGeom, mirrorSphereMaterial );
+            //     mirrorSphereCamera[i].position = mirrorSphere[i].position;
+            //     scene.add(mirrorSphere[i]);
 
-            };
+            // };
 
-            mirrorSphere[0].position.set( 100, 10,  100);
-            mirrorSphere[1].position.set(-100, 20,  100);
-            mirrorSphere[2].position.set( 100, 40, -100);
-            mirrorSphere[3].position.set(-100, 80, -100);
+            // mirrorSphere[0].position.set( 100, 10,  100);
+            // mirrorSphere[1].position.set(-100, 20,  100);
+            // mirrorSphere[2].position.set( 100, 40, -100);
+            // mirrorSphere[3].position.set(-100, 80, -100);
 
             var floorTexture = new THREE.ImageUtils.loadTexture( 'data/textures/checkerboard.jpg' );
-            floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
+            floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
             floorTexture.repeat.set( 100, 100 );
             var floorMaterial = new THREE.MeshLambertMaterial( { map: floorTexture,  /*transparent: true, opacity: 0.5,*/envMap: textureCube,
                 combine: THREE.MixOperation,
@@ -305,19 +305,19 @@ define([
 
                 //}, 0);
 
-                for(var i = 0; i < 4; i++) {
+                // for(var i = 0; i < 4; i++) {
 
-                    mirrorSphere[i].visible = false;
-                    mirrorSphereCamera[i].updateCubeMap( renderer, scene );
-                    mirrorSphere[i].visible = true;
+                //     mirrorSphere[i].visible = false;
+                //     mirrorSphereCamera[i].updateCubeMap( renderer, scene );
+                //     mirrorSphere[i].visible = true;
 
-                }
+                // }
 
                 renderer.render( scene, camera );
 
                 stats.update();
 
-            };        
+            };
 
         })(new THREE.Clock());
 

@@ -7,7 +7,7 @@ define([
         'navi',
         'view',
         'suspesionKinematics'
-    ], 
+    ],
     function(THREE, engine, transmission, chassis, steering, navi, view, suspesionKinematics) {
 
         var mesh;
@@ -57,7 +57,7 @@ define([
                 if(transmission.engineBrake > 0) {
 
                     engine.rpm -= transmission.engineBrake;
-                    
+
                     if(engine.rpm < engine.minRpm) {
 
                         engine.rpm = engine.minRpm;
@@ -76,7 +76,8 @@ define([
 
                 chassis.inertionForce(this.scalarInertionSpeed);
 
-                camera.fov = 40 + chassis.speed;
+                if(chassis.speed > 0)
+                    camera.fov = 40 + chassis.speed + Math.sin(chassis.speed/150)*100;
                 camera.updateProjectionMatrix();
 
                 this.calculateNewPosition();
@@ -85,7 +86,7 @@ define([
 
                 mesh.translateZ(carConsts.interaxalDistance / 2);
 
-                this.updateDashboard(angle);
+                //this.updateDashboard(angle);
 
                 this.updateLights();
 
@@ -145,13 +146,14 @@ define([
             this.operate = function(acceleration, turnabout) {
 
                 acceleration = 2 * acceleration / window.innerHeight - 1;
+                acceleration = Math.sin(acceleration*Math.PI/2);
                 turnabout = 2 * turnabout / window.innerWidth - 1;
 
                 turnabout *= -Math.cos((1 - Math.abs(turnabout)) * Math.PI + Math.PI) / 2 + 0.5;
 
                 navi.throttle = (acceleration < 0)? -acceleration: 0;
                 navi.brakes = (acceleration > 0)? acceleration: 0;
-                
+
                 steering.steeringAngle = -turnabout * 30;
 
             };
@@ -374,7 +376,9 @@ define([
         }, car;
 
         keys.on(107 /*+*/, function() {transmission.gearUp();});
+        keys.on(117 /*+*/, function() {transmission.gearUp();});
         keys.on(109 /*-*/, function() {transmission.gearDown();});
+        keys.on(100 /*-*/, function() {transmission.gearDown();});
 
         var game = new (function() {
 
@@ -393,7 +397,7 @@ define([
                             if(materials[i].name == 'Car') {
 
                                 materials[i] = app.data.carMaterial;
-                                
+
                             };
 
                             materials[i].skinning = true;
@@ -410,7 +414,7 @@ define([
 
                         car = new carModel(mesh.bones, mesh);
 
-                        car.initDashboard();
+                        //car.initDashboard();
                         car.initLights();
 
                         lights.directional.target.position = skyBox.position = car.position;
